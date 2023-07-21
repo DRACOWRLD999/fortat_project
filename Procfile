@@ -1,0 +1,1 @@
+web: gunicorn 'fortat_api.wsgi'
