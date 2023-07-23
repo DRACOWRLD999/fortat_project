@@ -1,17 +1,17 @@
-from django.db.models import Q
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 
-from .permissions import IsAdminOrReadOnly
-
 from .models import Route
+from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
 
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
-
+@method_decorator(cache_page(15*60), name='dispatch')
 class RouteList(generics.ListCreateAPIView):
     serializer_class = RouteSerializer
     pagination_class = CustomPagination
@@ -19,7 +19,7 @@ class RouteList(generics.ListCreateAPIView):
     permission_classes = [IsAdminOrReadOnly]
 
 
-
+@method_decorator(cache_page(15*60), name='dispatch')
 class RouteDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RouteSerializer
     queryset = Route.objects.all()
