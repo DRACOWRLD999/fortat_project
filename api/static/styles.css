@@ -6,17 +6,17 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #223d38;
+  background-color: #000000;
   height: 100vh;
   width: 100vw;
 }
 
 .logo {
-  width: 300px;
+  width: 800px;
 }
 
 .thumbnail {
-  object-fit: cover;
+  object-fit:cover ;
   width: 100px;
   height: 100px;
 }
