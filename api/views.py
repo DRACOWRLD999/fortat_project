@@ -3,6 +3,8 @@ from django.http import JsonResponse
 from rest_framework import generics
 from rest_framework.pagination import PageNumberPagination
 
+from .permissions import IsAdminOrReadOnly
+
 from .models import Route
 from .serializers import RouteSerializer
 
@@ -14,12 +16,14 @@ class RouteList(generics.ListCreateAPIView):
     serializer_class = RouteSerializer
     pagination_class = CustomPagination
     queryset = Route.objects.all()
+    permission_classes = [IsAdminOrReadOnly]
 
 
 
 class RouteDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RouteSerializer
     queryset = Route.objects.all()
+    permission_classes = [IsAdminOrReadOnly]
     
 
 from django.db.models import Q
