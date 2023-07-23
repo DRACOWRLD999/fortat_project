@@ -139,20 +139,12 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CSRF_TRUSTED_ORIGINS=['https://fortat.up.railway.app']
 
-# Use Railway's environment variables for Redis connection
-REDIS_HOST = os.environ.get('RAILWAY_REDIS_HOST', 'localhost')
-REDIS_PORT = os.environ.get('RAILWAY_REDIS_PORT', 6379)
-
-# Configure Django caching settings
 CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/1',  # Use '1' as the default Redis database
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://default:LqLySXsq4sJoIxwDbeUJ@containers-us-west-175.railway.app:8035/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
     }
 }
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
