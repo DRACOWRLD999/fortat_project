@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-@#ppuh#m%zx^h8h3(yxjh_*dh$9#!_u0l#!^90mfcm0!hyu6hb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['https://fortat.up.railway.app']
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
