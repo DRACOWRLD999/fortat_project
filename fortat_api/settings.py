@@ -84,12 +84,12 @@ WSGI_APPLICATION = 'fortat_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'URL': 'postgresql://postgres:FGJIahRz9AQRLvNQbtB8@containers-us-west-195.railway.app:7678/railway',
+        'URL': 'postgresql://postgres:BFNocwQx35xNrtCyK2p2@containers-us-west-90.railway.app:7854/railway',
         'NAME': 'railway',
         'USER': 'postgres',
-        'PASSWORD': 'FGJIahRz9AQRLvNQbtB8',
-        'HOST': 'containers-us-west-195.railway.app',
-        'PORT': 7678,
+        'PASSWORD': 'BFNocwQx35xNrtCyK2p2',
+        'HOST': 'containers-us-west-90.railway.app',
+        'PORT': 7854,
     }
 }
 
