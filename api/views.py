@@ -1,8 +1,10 @@
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Route
 from .permissions import IsAdminOrReadOnly
@@ -49,3 +51,13 @@ def search_locations(request):
     return JsonResponse([], safe=False)
 
 
+
+class NotFoundView(APIView):
+    def get(self, request, *args, **kwargs):
+        return Response({"error": "Endpoint not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def head(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
+
+    def options(self, request, *args, **kwargs):
+        return self.get(request, *args, **kwargs)
