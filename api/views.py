@@ -8,29 +8,50 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from api.switch_station import switch_station
+
 from .models import Route
 from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
 
 
+from api.models import Route
+from queue import PriorityQueue
 def find_shortest_path(request):
     if request.method == 'GET':
-        start_location = request.GET.get('start_location', None)
-        end_destination = request.GET.get('end_destination', None)
+        start_location = request.GET.get('start_location')
+        end_destination = request.GET.get('end_destination')
 
         if not start_location or not end_destination:
-            return JsonResponse({'error': 'Please provide both start_location and end_destination.'}, status=400)
+            return JsonResponse({'error': 'Missing parameters'}, status=400)
 
         try:
+            # Find optimal path
             total_cost, shortest_path = Route.a_star_shortest_path(start_location, end_destination)
-            return JsonResponse({
-                'shortest_distance': total_cost,
-                'shortest_path': shortest_path
-            })
-        except ValueError as e:
-            return JsonResponse({'error': str(e)}, status=400)
 
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+            # Get list of routes for the shortest path
+            route_legs = [Route.objects.get(location=loc, destination=next_loc)
+                          for loc, next_loc in zip(shortest_path[:-1], shortest_path[1:])]
+
+            switch_stations = set()  # Use a set to avoid duplicates
+
+            for i in range(len(route_legs) - 1):
+                mutual_stations = switch_station(route_legs[i], route_legs[i+1])
+                switch_stations.update(mutual_stations)
+
+            # Convert switch_stations set to a list of dictionaries
+            switch_stations_data = [{'name': station.name, 'id': station.id} for station in switch_stations]
+
+            return JsonResponse({
+                'total_cost': total_cost,
+                'shortest_path': shortest_path,
+                'switch_stations': switch_stations_data
+            })
+
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=404)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
