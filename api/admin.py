@@ -1,7 +1,10 @@
+
 from django.contrib import admin
+from .models import MidwayStation, Route
 
-# Register your models here.
-from .models import Route
-
-admin.site.register(Route)
-
+class RouteAdmin(admin.ModelAdmin):
+    filter_horizontal = ['midway_stations']
+    
+    
+admin.site.register(Route, RouteAdmin)
+admin.site.register(MidwayStation)

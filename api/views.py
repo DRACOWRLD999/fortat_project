@@ -1,4 +1,6 @@
+from queue import PriorityQueue
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import generics, status
@@ -10,6 +12,25 @@ from .models import Route
 from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
 
+
+def find_shortest_path(request):
+    if request.method == 'GET':
+        start_location = request.GET.get('start_location', None)
+        end_destination = request.GET.get('end_destination', None)
+
+        if not start_location or not end_destination:
+            return JsonResponse({'error': 'Please provide both start_location and end_destination.'}, status=400)
+
+        try:
+            total_cost, shortest_path = Route.a_star_shortest_path(start_location, end_destination)
+            return JsonResponse({
+                'shortest_distance': total_cost,
+                'shortest_path': shortest_path
+            })
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
@@ -26,10 +47,6 @@ class RouteDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RouteSerializer
     queryset = Route.objects.all()
     permission_classes = [IsAdminOrReadOnly]
-    
-
-from django.db.models import Q
-
 
 def search_locations(request):
     if 'query' in request.GET:
@@ -61,3 +78,5 @@ class NotFoundView(APIView):
 
     def options(self, request, *args, **kwargs):
         return self.get(request, *args, **kwargs)
+
+
