@@ -121,10 +121,8 @@ def find_routes_with_switch_station_view(request):
                         shortcut_routes.append({
                             'from_1': route1.location,
                             'to_1': route1.destination,
-                            'ride_fee_1': route1.ride_fee,
                             'from_2': route2.location,
                             'to_2': route2.destination,
-                            'ride_fee_2': route2.ride_fee,
                             'switch_station': midway_station.name,
                             'total_cost': total_cost
                         })
@@ -133,11 +131,9 @@ def find_routes_with_switch_station_view(request):
             {
                 'from_1': route['from_1'],
                 'to_1': route['to_1'],
-                'ride_fee_1': route['ride_fee_1'],
                 'switch_station': route['switch_station'],
                 'from_2': route['from_2'],
                 'to_2': route['to_2'],
-                'ride_fee_2': route['ride_fee_2'],
                 'total_cost': route['total_cost']
             }
             for route in shortcut_routes
