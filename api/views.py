@@ -1,57 +1,17 @@
-from queue import PriorityQueue
+
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
+from django.db.models import Q
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.switch_station import switch_station
-
 from .models import Route
 from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
 
-
-from api.models import Route
-from queue import PriorityQueue
-def find_shortest_path(request):
-    if request.method == 'GET':
-        start_location = request.GET.get('start_location')
-        end_destination = request.GET.get('end_destination')
-
-        if not start_location or not end_destination:
-            return JsonResponse({'error': 'Missing parameters'}, status=400)
-
-        try:
-            # Find optimal path
-            total_cost, shortest_path = Route.a_star_shortest_path(start_location, end_destination)
-
-            # Get list of routes for the shortest path
-            route_legs = [Route.objects.get(location=loc, destination=next_loc)
-                          for loc, next_loc in zip(shortest_path[:-1], shortest_path[1:])]
-
-            switch_stations = set()  # Use a set to avoid duplicates
-
-            for i in range(len(route_legs) - 1):
-                mutual_stations = switch_station(route_legs[i], route_legs[i+1])
-                switch_stations.update(mutual_stations)
-
-            # Convert switch_stations set to a list of dictionaries
-            switch_stations_data = [{'name': station.name, 'id': station.id} for station in switch_stations]
-
-            return JsonResponse({
-                'total_cost': total_cost,
-                'shortest_path': shortest_path,
-                'switch_stations': switch_stations_data
-            })
-
-        except ValueError as e:
-            return JsonResponse({'error': str(e)}, status=404)
-
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
@@ -89,6 +49,40 @@ def search_locations(request):
     return JsonResponse([], safe=False)
 
 
+def find_routes_with_no_straight_route(start_location, destination):
+    def find_routes_helper(current_location, target_location, used_routes, total_cost):
+        if current_location == target_location:
+            return [(used_routes, total_cost)]
+        
+        routes_from_current_location = Route.objects.filter(location=current_location)
+        valid_routes = []
+        
+        for route in routes_from_current_location:
+            if route.destination in used_routes:
+                continue
+            new_used_routes = used_routes + [route.destination]
+            new_total_cost = total_cost + route.ride_fee
+            results = find_routes_helper(route.destination, target_location, new_used_routes, new_total_cost)
+            valid_routes.extend(results)
+        
+        return valid_routes
+
+    routes_combinations = find_routes_helper(start_location, destination, [start_location], 0)
+    return routes_combinations
+
+# In views.py
+def find_multiple_routes_to_destination(request):
+    if 'start_location' in request.GET and 'destination' in request.GET:
+        start_location = request.GET['start_location']
+        destination = request.GET['destination']
+
+        routes_combinations = find_routes_with_no_straight_route(start_location, destination)
+
+        serialized_results = [{'routes': [route for route in routes], 'total_cost': cost} for routes, cost in routes_combinations]
+        return JsonResponse(serialized_results, safe=False)
+
+    return JsonResponse([], safe=False)
+
 
 class NotFoundView(APIView):
     def get(self, request, *args, **kwargs):
@@ -101,3 +95,54 @@ class NotFoundView(APIView):
         return self.get(request, *args, **kwargs)
 
 
+def find_routes_with_switch_station_view(request):
+    if 'start_location' in request.GET:
+        start_location = request.GET['start_location']
+
+        # Find routes starting from the provided start location
+        routes_from_start = Route.objects.filter(location=start_location)
+        start_midway_stations = set()
+
+        # Collect the midway stations of routes starting from the start location
+        for route in routes_from_start:
+            start_midway_stations.update(route.midway_stations.all())
+
+        shortcut_routes = []
+
+        # Find routes with destinations having the same midway stations
+        for midway_station in start_midway_stations:
+            routes_with_same_midway_station = Route.objects.filter(midway_stations=midway_station)
+
+            # Find combinations of routes that cross at the mutual midway station
+            for route1 in routes_from_start:
+                for route2 in routes_with_same_midway_station:
+                    if route1 != route2:
+                        total_cost = route1.ride_fee + route2.ride_fee
+                        shortcut_routes.append({
+                            'from_1': route1.location,
+                            'to_1': route1.destination,
+                            'ride_fee_1': route1.ride_fee,
+                            'from_2': route2.location,
+                            'to_2': route2.destination,
+                            'ride_fee_2': route2.ride_fee,
+                            'switch_station': midway_station.name,
+                            'total_cost': total_cost
+                        })
+
+        serialized_results = [
+            {
+                'from_1': route['from_1'],
+                'to_1': route['to_1'],
+                'ride_fee_1': route['ride_fee_1'],
+                'switch_station': route['switch_station'],
+                'from_2': route['from_2'],
+                'to_2': route['to_2'],
+                'ride_fee_2': route['ride_fee_2'],
+                'total_cost': route['total_cost']
+            }
+            for route in shortcut_routes
+        ]
+
+        return JsonResponse(serialized_results, safe=False)
+
+    return JsonResponse([], safe=False)
