@@ -7,6 +7,7 @@ from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from api.google_maps_link_gen import create_google_maps_link, create_google_maps_link_for_combination
 
 from api.models import Route
 
@@ -75,9 +76,11 @@ def find_common_midway_station(request):
     if not start_location or not end_destination:
         return JsonResponse({'error': 'Both start_location and end_destination parameters are required.'}, status=400)
 
-    start_route, end_route, common_midway_list = find_routes_with_common_midway(start_location, end_destination)
+    start_route, end_route, common_midway_stations = find_routes_with_common_midway(start_location, end_destination)
 
-    if start_route and end_route and common_midway_list:
+    if start_route and end_route and common_midway_stations:
+        common_midway_station = common_midway_stations[0]  # Access the first element of the list
+
         data = {
             'start_route': {
                 'id': start_route.id,
@@ -89,13 +92,23 @@ def find_common_midway_station(request):
                 'location': end_route.location,
                 'destination': end_route.destination,
             },
-            'common_midway_stations': [
-                {'id': midway_station.id, 'name': midway_station.name} for midway_station in common_midway_list
-            ],
+            'common_midway_station': {
+                'id': common_midway_station.id,
+                'name': common_midway_station.name
+            },
         }
+        
+        # Create the Google Maps link using the combined midway stations
+        origin = start_location
+        destination = end_destination
+        google_maps_link = create_google_maps_link(start_route.midway_stations.all(), end_route.midway_stations.all(),
+                                                   origin, destination, common_midway_station)
+        data['google_maps_link'] = google_maps_link
+        
         return JsonResponse(data)
     else:
         return JsonResponse({'message': 'No common midway station found.'}, status=404)
+
     
 #safe 100%
 
@@ -116,11 +129,16 @@ def find_routes_combination_view(request):
                 {
                     'id': route.id,
                     'location': route.location,
-                    'destination': route.destination
+                    'destination': route.destination,
                 }
                 for route in combination_routes
             ]
         }
+
+        # Create the Google Maps link for the combination of routes
+        google_maps_link = create_google_maps_link_for_combination(combination_routes, start_location, end_destination)
+        data['google_maps_link'] = google_maps_link
+
         return JsonResponse(data)
     else:
         return JsonResponse({'message': 'No combination of routes found.'}, status=404)
