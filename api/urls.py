@@ -8,6 +8,7 @@ from api import views
 
 urlpatterns = [
     path('find_common_midway/', views.find_common_midway_station, name='find-common-midway'),
+    path('find_routes_combination/', views.find_routes_combination_view, name='find-routes-combination'),
     path('routes/search/',search_locations, name='search-locations'),
     path('routes/', RouteList.as_view(), name='route-list'),
     path('routes/<int:pk>', RouteDetail.as_view(),name= 'route-detail'),

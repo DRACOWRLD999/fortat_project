@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 
 from api.models import Route
 
-from .mapping_utils import find_routes_with_common_midway
+from .mapping_utils import find_routes_combination, find_routes_with_common_midway
 from .models import Route
 from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
@@ -52,39 +52,7 @@ def search_locations(request):
     return JsonResponse([], safe=False)
 
 
-def find_routes_with_no_straight_route(start_location, destination):
-    def find_routes_helper(current_location, target_location, used_routes, total_cost):
-        if current_location == target_location:
-            return [(used_routes, total_cost)]
-        
-        routes_from_current_location = Route.objects.filter(location=current_location)
-        valid_routes = []
-        
-        for route in routes_from_current_location:
-            if route.destination in used_routes:
-                continue
-            new_used_routes = used_routes + [route.destination]
-            new_total_cost = total_cost + route.ride_fee
-            results = find_routes_helper(route.destination, target_location, new_used_routes, new_total_cost)
-            valid_routes.extend(results)
-        
-        return valid_routes
 
-    routes_combinations = find_routes_helper(start_location, destination, [start_location], 0)
-    return routes_combinations
-
-# In views.py
-def find_multiple_routes_to_destination(request):
-    if 'start_location' in request.GET and 'destination' in request.GET:
-        start_location = request.GET['start_location']
-        destination = request.GET['destination']
-
-        routes_combinations = find_routes_with_no_straight_route(start_location, destination)
-
-        serialized_results = [{'routes': [route for route in routes], 'total_cost': cost} for routes, cost in routes_combinations]
-        return JsonResponse(serialized_results, safe=False)
-
-    return JsonResponse([], safe=False)
 
 
 class NotFoundView(APIView):
@@ -130,3 +98,29 @@ def find_common_midway_station(request):
         return JsonResponse({'message': 'No common midway station found.'}, status=404)
     
 #safe 100%
+
+
+@require_GET
+def find_routes_combination_view(request):
+    start_location = request.GET.get('start_location')
+    end_destination = request.GET.get('end_destination')
+
+    if not start_location or not end_destination:
+        return JsonResponse({'error': 'Both start_location and end_destination parameters are required.'}, status=400)
+
+    combination_routes = find_routes_combination(start_location, end_destination)
+
+    if combination_routes:
+        data = {
+            'combination_routes': [
+                {
+                    'id': route.id,
+                    'location': route.location,
+                    'destination': route.destination
+                }
+                for route in combination_routes
+            ]
+        }
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'message': 'No combination of routes found.'}, status=404)
