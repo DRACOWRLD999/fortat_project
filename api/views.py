@@ -1,27 +1,16 @@
-<<<<<<< HEAD
 #view.py
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_GET
-=======
-
-from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
-from django.db.models import Q
->>>>>>> 15c98ac5c214b391b2584c9f20296889595a9797
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-<<<<<<< HEAD
 from api.models import Route
 
 from .mapping_utils import find_routes_with_common_midway
-=======
->>>>>>> 15c98ac5c214b391b2584c9f20296889595a9797
 from .models import Route
 from .permissions import IsAdminOrReadOnly
 from .serializers import RouteSerializer
@@ -109,7 +98,6 @@ class NotFoundView(APIView):
         return self.get(request, *args, **kwargs)
 
 
-<<<<<<< HEAD
 
 @require_GET
 def find_common_midway_station(request):
@@ -142,53 +130,3 @@ def find_common_midway_station(request):
         return JsonResponse({'message': 'No common midway station found.'}, status=404)
     
 #safe 100%
-
-=======
-def find_routes_with_switch_station_view(request):
-    if 'start_location' in request.GET:
-        start_location = request.GET['start_location']
-
-        # Find routes starting from the provided start location
-        routes_from_start = Route.objects.filter(location=start_location)
-        start_midway_stations = set()
-
-        # Collect the midway stations of routes starting from the start location
-        for route in routes_from_start:
-            start_midway_stations.update(route.midway_stations.all())
-
-        shortcut_routes = []
-
-        # Find routes with destinations having the same midway stations
-        for midway_station in start_midway_stations:
-            routes_with_same_midway_station = Route.objects.filter(midway_stations=midway_station)
-
-            # Find combinations of routes that cross at the mutual midway station
-            for route1 in routes_from_start:
-                for route2 in routes_with_same_midway_station:
-                    if route1 != route2:
-                        total_cost = route1.ride_fee + route2.ride_fee
-                        shortcut_routes.append({
-                            'from_1': route1.location,
-                            'to_1': route1.destination,
-                            'from_2': route2.location,
-                            'to_2': route2.destination,
-                            'switch_station': midway_station.name,
-                            'total_cost': total_cost
-                        })
-
-        serialized_results = [
-            {
-                'from_1': route['from_1'],
-                'to_1': route['to_1'],
-                'switch_station': route['switch_station'],
-                'from_2': route['from_2'],
-                'to_2': route['to_2'],
-                'total_cost': route['total_cost']
-            }
-            for route in shortcut_routes
-        ]
-
-        return JsonResponse(serialized_results, safe=False)
-
-    return JsonResponse([], safe=False)
->>>>>>> 15c98ac5c214b391b2584c9f20296889595a9797
