@@ -23,3 +23,14 @@ class Route(models.Model):
     def __str__(self):
         return f'Route from {self.location} to {self.destination}'
     
+    def initialize_google_maps_link(self):
+        origin = self.location.replace(" ", "+")
+        destination = self.destination.replace(" ", "+")
+        midway_stations = "|".join([station.name.replace(" ", "+") for station in self.midway_stations.all()])
+
+        self.google_maps_link = f"https://www.google.com/maps/dir/{origin}/{midway_stations}/{destination}/"
+
+    def save(self, *args, **kwargs):
+        # Initialize the Google Maps link before saving the object
+        self.initialize_google_maps_link()
+        super().save(*args, **kwargs)

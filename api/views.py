@@ -48,7 +48,7 @@ def search_locations(request):
         else:
             results = location_results | destination_results
 
-        serialized_results = [{'id': route.id, 'location': route.location, 'destination': route.destination, 'description': route.description, 'ride_fee': route.ride_fee} for route in results]
+        serialized_results = [{'id': route.id, 'location': route.location, 'destination': route.destination, 'description': route.description, 'ride_fee': route.ride_fee,'google_maps_link':route.google_maps_link} for route in results]
         return JsonResponse(serialized_results, safe=False)
     return JsonResponse([], safe=False)
 
