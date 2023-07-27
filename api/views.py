@@ -86,11 +86,13 @@ def find_common_midway_station(request):
                 'id': start_route.id,
                 'location': start_route.location,
                 'destination': start_route.destination,
+                'google_maps_link': generate_google_maps_link(start_route),
             },
             'end_route': {
                 'id': end_route.id,
                 'location': end_route.location,
                 'destination': end_route.destination,
+                'google_maps_link': generate_google_maps_link(end_route),
             },
             'common_midway_station': {
                 'id': common_midway_station.id,
