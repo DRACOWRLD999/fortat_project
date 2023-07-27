@@ -26,16 +26,13 @@ def create_google_maps_link(start_midway_stations, end_midway_stations, origin, 
 
 def create_google_maps_link_for_combination(routes_with_midway_stations, start_location, end_destination):
     waypoints = []
-    # Add the URL's start_location as the origin and the first route's destination as the destination
     origin = start_location.replace(" ", "+")
     destination = end_destination.replace(" ", "+")
     waypoints.append(origin)
 
-    # Exclude the first and last locations from routes_with_midway_stations
     routes_with_midway_stations = routes_with_midway_stations[1:]
 
     for route in routes_with_midway_stations:
-        # Include the route's midway stations
         midway_stations = [station.name.replace(" ", "+") for station in route.midway_stations.all()]
         waypoints.extend(midway_stations)
 
@@ -44,3 +41,15 @@ def create_google_maps_link_for_combination(routes_with_midway_stations, start_l
 
     return google_maps_link
 
+def generate_google_maps_link(route):
+    origin = route.location.replace(" ", "+")
+    destination = route.destination.replace(" ", "+")
+    
+    midway_stations = [station.name.replace(" ", "+") for station in route.midway_stations.all()]
+    if midway_stations:
+        waypoints = "|".join(midway_stations)
+        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&waypoints={waypoints}"
+    else:
+        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}"
+    
+    return google_maps_link

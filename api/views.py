@@ -7,7 +7,7 @@ from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from api.google_maps_link_gen import create_google_maps_link, create_google_maps_link_for_combination
+from api.google_maps_link_gen import create_google_maps_link, create_google_maps_link_for_combination,generate_google_maps_link
 
 from api.models import Route
 
@@ -130,6 +130,7 @@ def find_routes_combination_view(request):
                     'id': route.id,
                     'location': route.location,
                     'destination': route.destination,
+                    'google_maps_link': generate_google_maps_link(route),
                 }
                 for route in combination_routes
             ]
