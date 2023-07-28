@@ -16,7 +16,7 @@ def create_google_maps_link(start_midway_stations, end_midway_stations, origin, 
     midway_stations_encoded = "|".join([station.replace(" ", "+") for station in combined_midway_stations])
 
     # Create the Google Maps link
-    google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin_encoded}&destination={destination_encoded}&waypoints={midway_stations_encoded}"
+    google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin_encoded}&destination={destination_encoded}&waypoints={midway_stations_encoded}&region=iq"
     
     return google_maps_link
 
@@ -37,7 +37,7 @@ def create_google_maps_link_for_combination(routes_with_midway_stations, start_l
         waypoints.extend(midway_stations)
 
     waypoints_str = "|".join(waypoints)
-    google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&waypoints={waypoints_str}"
+    google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&waypoints={waypoints_str}&region=iq"
 
     return google_maps_link
 
@@ -48,8 +48,8 @@ def generate_google_maps_link(route):
     midway_stations = [station.name.replace(" ", "+") for station in route.midway_stations.all()]
     if midway_stations:
         waypoints = "|".join(midway_stations)
-        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&waypoints={waypoints}"
+        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&waypoints={waypoints}&region=iq"
     else:
-        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}"
+        google_maps_link = f"https://www.google.com/maps/dir/?api=1&origin={origin}&destination={destination}&region=iq"
     
     return google_maps_link
