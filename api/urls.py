@@ -13,5 +13,4 @@ urlpatterns = [
     path('routes/', RouteList.as_view(), name='route-list'),
     path('routes/<int:pk>', RouteDetail.as_view(),name= 'route-detail'),
     path('', TemplateView.as_view(template_name= 'landing-page.html')),
-    path('<path:not_found>/', NotFoundView.as_view(), name='not-found'),
 ]
