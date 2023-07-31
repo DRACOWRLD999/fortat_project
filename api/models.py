@@ -14,10 +14,7 @@ class Route(models.Model):
     ride_fee = models.DecimalField(max_digits=5, decimal_places=0)
     google_maps_link = models.URLField(max_length=10000, default='')
 
-    google_maps_link = models.URLField(max_length=10000, default='https://www.google.com/maps')
-
-    midway_stations = models.ManyToManyField(MidwayStation, related_name='routes')  # Use related_name
-
+    midway_stations = models.ManyToManyField(MidwayStation, related_name='routes')
     def __str__(self):
         return f'Route from {self.location} to {self.destination}'
     
